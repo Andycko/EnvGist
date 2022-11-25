@@ -1,24 +1,22 @@
-console.log('Try npm run lint/fix!');
+import GithubIntegration from './Integration/Github';
+import {existsSync, readFileSync, writeFileSync} from 'fs';
+import {cleanUpEnv, convertEnvToString} from './Utils/env';
 
-const longString =
-  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer ut aliquet diam.';
+async function main() {
+  const res = await new GithubIntegration().getGist(
+    '81ca4525fc8a9c43322a05613979a3eb'
+  );
 
-const trailing = 'Semicolon';
+  let envContents: Record<string, string> = cleanUpEnv(
+    res.data.files!['.env']!.content!
+  );
 
-const why = 'am I tabbed?';
-
-export function doSomeStuff(
-  withThis: string,
-  andThat: string,
-  andThose: string[]
-) {
-  //function on one line
-  if (!andThose.length) {
-    return false;
+  if (existsSync('.env')) {
+    const currentEnvContents = cleanUpEnv(readFileSync('.env', 'utf8'));
+    envContents = {...currentEnvContents, ...envContents};
   }
-  console.log(withThis);
-  console.log(andThat);
-  console.dir(andThose);
-  return;
+
+  writeFileSync('.env', convertEnvToString(envContents));
 }
-// TODO: more examples
+
+main().catch(console.error);
